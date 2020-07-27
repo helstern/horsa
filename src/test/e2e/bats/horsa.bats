@@ -3,32 +3,33 @@
 load helper_horsa
 load helper_socket
 
-@test "invoking foo with a nonexistent file prints an error" {
+@test "test os resources are released after each connection is closed" {
+
+    # it appears that when compiled under go 1.14 after the initial connection, lsof reports two pipes
+    local EXPECTED_OPENPIPES=2
+    if horsa_compiled_version_compare '<' 1.14
+    then
+        EXPECTED_OPENPIPES=0
+    fi
+
     local SYSTEMD; read SYSTEMD < <(which systemd-socket-activate || echo /lib/systemd/systemd-activate)
 
     local PORT=8000
     ${SYSTEMD} --listen ${PORT} ${HORSA} systemd ${HORSA_ECHO_SERVER} &
     local SERVER_PID=$!
 
-    sleep 1
-    lsof -c horsa +E || true
-    local OPENED_SOCKETS; read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
-    test 0 = ${OPENED_SOCKETS}
+    local OPEN_PIPES; read OPEN_PIPES < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
+    test 0 = ${OPEN_PIPES}
 
     local RESPONSE; read RESPONSE < <(echo "hello" | PORT=${PORT} socket_client)
-    lsof -c horsa +E
-    read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
-    echo "${OPENED_SOCKETS} ${RESPONSE}"
-    test 0 = ${OPENED_SOCKETS}
+    read OPEN_PIPES < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
+    test ${EXPECTED_OPENPIPES} = ${OPEN_PIPES}
     test 'hello' = "${RESPONSE}"
-
 
     read RESPONSE < <(echo "hello" | PORT=${PORT} socket_client)
-    read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
-    echo "${OPENED_SOCKETS} ${RESPONSE}"
-
+    read OPEN_PIPES < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
     test 'hello' = "${RESPONSE}"
-    test 2 = ${OPENED_SOCKETS}
+    test ${EXPECTED_OPENPIPES} = ${OPEN_PIPES}
 
     kill ${SERVER_PID}
 }
