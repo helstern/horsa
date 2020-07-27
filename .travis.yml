@@ -17,7 +17,7 @@ git:
 
 before_install:
   # install e2e test dependencies
-  - if test -z "${TRAVIS_TAG}" && test -n "${TRAVIS_PULL_REQUEST_SHA}"; then sudo apt-get -y install socket; fi
+  - sudo apt-get -y install socket
 
 # Skip the install step.
 install: true
@@ -31,20 +31,5 @@ notifications:
 
 # TODO lint
 script:
-  - if test -z "${TRAVIS_TAG}" && test -n "${TRAVIS_PULL_REQUEST_SHA}"; then GOOS=${GOOS_} GOARCH=${GOARCH_} make build; make e2e-test; fi # only run tests on pull requests
-  - if test -n "${TRAVIS_TAG}" && test -z "${TRAVIS_PULL_REQUEST_SHA}"; then VERSION=${TRAVIS_TAG} GOOS=${GOOS_} GOARCH=${GOARCH_} make package; fi # only run tests on pull requests
-
-branches:
-  only:
-    - master
-    - /^deploy-.*$/
-    - /^v\d+\.\d+\.\d+.*$/
-
-deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN
-  file: target/horsa-${TRAVIS_TAG}-linux-amd64.tar.gz
-  skip_cleanup: true
-  draft: true
-  on:
-    tags: true
+  - GOOS=${GOOS_} GOARCH=${GOARCH_} make build;
+  - make e2e-test # only run tests on pull requests

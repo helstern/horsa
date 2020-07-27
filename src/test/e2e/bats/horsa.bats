@@ -15,12 +15,15 @@ load helper_socket
 
     local RESPONSE; read RESPONSE < <(echo "hello" | PORT=${PORT} socket_client)
     read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
+    echo "${OPENED_SOCKETS} ${RESPONSE}"
     test 2 = ${OPENED_SOCKETS}
     test 'hello' = "${RESPONSE}"
 
 
     read RESPONSE < <(echo "hello" | PORT=${PORT} socket_client)
     read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
+    echo "${OPENED_SOCKETS} ${RESPONSE}"
+
     test 'hello' = "${RESPONSE}"
     test 2 = ${OPENED_SOCKETS}
 
