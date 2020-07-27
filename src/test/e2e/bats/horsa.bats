@@ -10,6 +10,8 @@ load helper_socket
     ${SYSTEMD} --listen ${PORT} ${HORSA} systemd ${HORSA_ECHO_SERVER} &
     local SERVER_PID=$!
 
+    sleep 1
+    lsof -c horsa +E || true
     local OPENED_SOCKETS; read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
     test 0 = ${OPENED_SOCKETS}
 
