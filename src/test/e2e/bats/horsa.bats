@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bats
 
 load helper_horsa
 load helper_socket
@@ -9,22 +9,22 @@ load helper_socket
     local SERVER_PID=$!
 
     local OPENED_SOCKETS; read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
-    echo "2 == ${OPENED_SOCKETS}"
-    test 0 == ${OPENED_SOCKETS}
+    test 0 = ${OPENED_SOCKETS}
 
     local RESPONSE; read RESPONSE < <(echo "hello" | PORT=${PORT} socket_client)
     read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
-    test 'hello' -eq "${RESPONSE}"
-    test 2 == ${OPENED_SOCKETS}
+    test 2 = ${OPENED_SOCKETS}
+    test 'hello' = "${RESPONSE}"
+
 
     read RESPONSE < <(echo "hello" | PORT=${PORT} socket_client)
     read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
-    test 'hello' -eq "${RESPONSE}"
-    test 2 == ${OPENED_SOCKETS}
+    test 'hello' = "${RESPONSE}"
+    test 2 = ${OPENED_SOCKETS}
 
-#    kill ${SERVER_PID}
+    kill ${SERVER_PID}
 }
 
 teardown() {
-    pkill -f horsa
+    pkill -f ${HORSA} || true
 }

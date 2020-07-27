@@ -1,3 +1,11 @@
 #!/usr/bin/env sh
 
-cat -
+while read LINE
+do
+    if test -z "${LINE}"
+    then
+        break
+    else
+        echo ${LINE}
+    fi
+done
