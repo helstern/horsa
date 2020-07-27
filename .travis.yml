@@ -1,0 +1,46 @@
+# use the latest ubuntu environment (18.04) available on travis
+dist: xenial
+
+language: go
+
+# Force-enable Go modules. Also force go to use the code in vendor/
+# These will both be unnecessary when Go 1.13 lands.
+env:
+  - GO111MODULE=on GOOS_=linux GOARCH_=amd64
+
+go:
+  - "1.13"
+
+# Only clone the most recent commit.
+git:
+  depth: 1
+
+# Skip the install step.
+install: true
+
+# Don't email me the results of the test runs.
+notifications:
+  email: false
+
+#before_script:
+#  -
+
+# TODO lint
+script:
+  - if test -z "${TRAVIS_TAG}" && test -n "${TRAVIS_PULL_REQUEST_SHA}"; then GOOS=${GOOS_} GOARCH=${GOARCH_} make build; make test; fi # only run tests on pull requests
+  - if test -n "${TRAVIS_TAG}" && test -z "${TRAVIS_PULL_REQUEST_SHA}"; then VERSION=${TRAVIS_TAG} GOOS=${GOOS_} GOARCH=${GOARCH_} make package; fi # only run tests on pull requests
+
+branches:
+  only:
+    - master
+    - /^deploy-.*$/
+    - /^v\d+\.\d+\.\d+.*$/
+
+deploy:
+  provider: releases
+  api_key: $GITHUB_TOKEN
+  file: target/horsa-${TRAVIS_TAG}-linux-amd64.tar.gz
+  skip_cleanup: true
+  draft: true
+  on:
+    tags: true
