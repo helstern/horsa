@@ -4,8 +4,10 @@ load helper_horsa
 load helper_socket
 
 @test "invoking foo with a nonexistent file prints an error" {
+    local SYSTEMD; read SYSTEMD < <(which systemd-socket-activate || echo /lib/systemd/systemd-activate)
+
     local PORT=8000
-    systemd-socket-activate --listen ${PORT} ${HORSA} systemd ${HORSA_ECHO_SERVER} &
+    ${SYSTEMD} --listen ${PORT} ${HORSA} systemd ${HORSA_ECHO_SERVER} &
     local SERVER_PID=$!
 
     local OPENED_SOCKETS; read OPENED_SOCKETS < <(lsof -c horsa +E | grep -E '^horsa.+FIFO' | wc -l)
