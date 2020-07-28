@@ -36,21 +36,23 @@ E2E_SOURCES = $(shell find ${mkfile_dir}/src/test/e2e -name '*.bats')
 e2e-test: $(E2E_SOURCES)
 	@ ERROR=0; for file in $^; do bats --tap $${file} || ERROR=1; done; exit $${ERROR}
 
-build: ARGS=-v
-build: GOOS ?= linux
-build: GOARCH ?= amd64
-build: VERSION ?= latest
-build: ${mkfile_dir}/src/main/golang
+build-golang: ARGS=-v
+build-golang: GOOS ?= linux
+build-golang: GOARCH ?= amd64
+build-golang: VERSION ?= latest
+build-golang: ${mkfile_dir}/src/main/golang
 	${QUIET} cd ${mkfile_dir}/src/main/golang/cmd/horsa && GOOS=${GOOS} GOARCH=${GOARCH}  ${GO} build -o ${out_dir}/horsa/horsa ${ARGS}
-
-package: GOOS ?= linux
-package: GOARCH ?= amd64
-package: VERSION ?= latest
-package: build
-	${QUIET} cd ${out_dir} && tar -cz -f ${out_dir}/horsa-${VERSION}-${GOOS}-${GOARCH}.tar.gz -C ${out_dir}/horsa .
 
 deps:
 	${QUIET} cd ${mkfile_dir}/src/main/golang && ${GO} mod vendor
+
+build: GOOS ?= linux
+build: GOARCH ?= amd64
+build: VERSION ?= latest
+build: build-golang
+	${QUIET} tar -cz -f ${out_dir}/horsa/horsa-${VERSION}-${GOOS}-${GOARCH}.tar.gz -C ${out_dir}/horsa --transform "s,^\.,/usr/local/bin," .
+	${QUIET} cd ${out_dir}/horsa && sha256sum horsa >> SHA256SUMS
+	${QUIET} cd ${out_dir}/horsa && sha256sum horsa-${VERSION}-${GOOS}-${GOARCH}.tar.gz >> SHA256SUMS
 
 # RELEASE
 

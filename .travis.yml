@@ -9,8 +9,9 @@ env:
   - GO111MODULE=on GOOS_=linux GOARCH_=amd64
 
 go:
+#1.13 is disabled because it is not clear which deploy will be released
+#  - "1.13"
   - "1.14.3"
-  - "1.13"
 
 # Only clone the most recent commit.
 git:
@@ -32,8 +33,8 @@ notifications:
 
 # TODO lint
 script:
-  - if test -z "${TRAVIS_TAG}" && test -n "${TRAVIS_PULL_REQUEST_SHA}"; then GOOS=${GOOS_} GOARCH=${GOARCH_} make build; make e2e-test; fi # only run tests on pull requests
-  - if test -n "${TRAVIS_TAG}" && test -z "${TRAVIS_PULL_REQUEST_SHA}"; then VERSION=${TRAVIS_TAG} GOOS=${GOOS_} GOARCH=${GOARCH_} make package; fi # only run tests on pull requests
+  - if test -z "${TRAVIS_TAG}" && test -n "${TRAVIS_PULL_REQUEST_SHA}"; then GOOS=${GOOS_} GOARCH=${GOARCH_} make build-golang; make e2e-test; fi # only run tests on pull requests
+  - if test -n "${TRAVIS_TAG}" && test -z "${TRAVIS_PULL_REQUEST_SHA}"; then VERSION=${TRAVIS_TAG} GOOS=${GOOS_} GOARCH=${GOARCH_} make VERBOSE=1 build; fi # only run tests on pull requests
 
 branches:
   only:
@@ -44,7 +45,10 @@ branches:
 deploy:
   provider: releases
   api_key: $GITHUB_TOKEN
-  file: target/horsa-${TRAVIS_TAG}-linux-amd64.tar.gz
+  file:
+    - target/horsa/horsa-${TRAVIS_TAG}-linux-amd64.tar.gz
+    - target/horsa/horsa
+    - target/horsa/SHA256SUMS
   skip_cleanup: true
   draft: true
   on:
