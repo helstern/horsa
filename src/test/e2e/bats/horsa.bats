@@ -4,6 +4,8 @@ load helper_horsa
 load helper_socket
 
 @test "test os resources are released after each connection is closed" {
+    local GOLANG_VERSION; read GOLANG_VERSION < <(horsa_supported_go_version)
+    test -n "${GOLANG_VERSION}"
 
     # it appears that when compiled under go 1.14 after the initial connection, lsof reports two pipes
     local EXPECTED_OPENPIPES=2

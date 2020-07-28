@@ -4,9 +4,24 @@ PROJECT_DIR="$( cd "$( dirname "${BATS_TEST_DIRNAME}/../../../../../" )" >/dev/n
 
 export HORSA=${PROJECT_DIR}/target/horsa/horsa
 
+# compares the default go version against a supplied one using a specified operator
+# it returnins the supplied version if the comparison returns true or an empty string
+# example: horsa_supported_go_version < 1.14
+function horsa_supported_go_version() {
+    local GO_VERSION; read GO_VERSION < <(go version | cut -d ' ' -f 3)
+
+    local GREATER_GO_VERSION; read GREATER_GO_VERSION < <(echo -e "go1.13\n${GO_VERSION}" | sort --version-sort | tail -n 1)
+    if test "${GO_VERSION}" = "${GREATER_GO_VERSION}"
+    then
+        echo ${GO_VERSION}
+    else
+        echo
+    fi
+}
+
 function horsa_compiled_version_compare() {
     local OPERATOR=${1}
-    local VERSION=${2}
+    local VERSION=go${2}
 
     local COMPILED_VERSION; read COMPILED_VERSION < <(go version ${HORSA} | cut -d ' ' -f 2)
 
@@ -21,7 +36,7 @@ function horsa_compiled_version_compare() {
         return 1
     fi
 
-    local GREATER_VERSION; read GREATER_VERSION < <(echo -e "${COMPILED_VERSION}\ngo${VERSION}" | sort --version-sort | tail -n 1)
+    local GREATER_VERSION; read GREATER_VERSION < <(echo -e "${COMPILED_VERSION}\n${VERSION}" | sort --version-sort | tail -n 1)
 
     case "${OPERATOR}" in
         '>')
@@ -42,7 +57,5 @@ function horsa_compiled_version_compare() {
         ;;
     esac
 
-    echo "unknown operator: ${OPERATOR}"
     exit 1
-
 }
