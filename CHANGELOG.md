@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- the build command fails when trying to build the tar package
+
 ## [v0.1.0] - 2020-07-28
 ### Added
 - systemd socket activation proxy with rudimentary handling of the scoket connection

@@ -49,8 +49,9 @@ deps:
 build: GOOS ?= linux
 build: GOARCH ?= amd64
 build: VERSION ?= latest
+build: TAR_NAME = horsa-${VERSION}-${GOOS}-${GOARCH}.tar.gz
 build: build-golang
-	${QUIET} tar -cz -f ${out_dir}/horsa/horsa-${VERSION}-${GOOS}-${GOARCH}.tar.gz -C ${out_dir}/horsa --transform "s,^\.,/usr/local/bin," .
+	${QUIET} mkdir -p ${out_dir}/horsa && ${QUIET} touch ${out_dir}/horsa/${TAR_NAME} && ${QUIET} tar --exclude=${TAR_NAME} -cz -f ${out_dir}/horsa/${TAR_NAME} -C ${out_dir}/horsa --transform "s,^\.,/usr/local/bin," .
 	${QUIET} cd ${out_dir}/horsa && sha256sum horsa >> SHA256SUMS
 	${QUIET} cd ${out_dir}/horsa && sha256sum horsa-${VERSION}-${GOOS}-${GOARCH}.tar.gz >> SHA256SUMS
 
